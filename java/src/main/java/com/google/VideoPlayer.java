@@ -118,42 +118,15 @@ public class VideoPlayer {
     }
   }
 
-  private static class PlayList {
-    private final String name;
-    private List<Video> videos;
 
-    private PlayList(String name) {
-      this.name = name;
-      this.videos = new ArrayList<>();
-    }
-
-    public boolean addVideo(Video video) {
-      if (videos.contains(video)) {
-        return false;
-      } else {
-        videos.add(video);
-        return true;
-      }
-    }
-
-    public boolean removeVideo(Video video) {
-      if (videos.contains(video)) {
-        videos.remove(video);
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  Map<String, PlayList> playListMap = new HashMap<>();
+  Map<String, VideoPlaylist> playListMap = new HashMap<>();
 
   public void createPlaylist(String playlistName) {
     String lowerCaseName = playlistName.toLowerCase();
     if (playListMap.containsKey(lowerCaseName)) {
       System.out.println("Cannot create playlist: A playlist with the same name already exists");
     } else {
-      playListMap.put(lowerCaseName, new PlayList(playlistName));
+      playListMap.put(lowerCaseName, new VideoPlaylist(playlistName));
       System.out.println("Successfully created new playlist: " + playlistName);
     }
   }
@@ -162,7 +135,7 @@ public class VideoPlayer {
     String lowerCaseName = playlistName.toLowerCase();
     if (playListMap.containsKey(lowerCaseName)) {
       Video video = videoLibrary.getVideo(videoId);
-      PlayList playList = playListMap.get(lowerCaseName);
+      VideoPlaylist playList = playListMap.get(lowerCaseName);
       if (video != null) {
         if (playList.addVideo(video)) {
           System.out.printf("Added video to %s: %s%n", playlistName, video.getTitle());
@@ -191,7 +164,7 @@ public class VideoPlayer {
   }
 
   public void showPlaylist(String playlistName) {
-    PlayList playList = playListMap.get(playlistName.toLowerCase());
+    VideoPlaylist playList = playListMap.get(playlistName.toLowerCase());
     if (playList != null) {
       System.out.printf("Showing playlist: %s%n", playlistName);
       if (playList.videos.isEmpty()) {
@@ -208,7 +181,7 @@ public class VideoPlayer {
 
   public void removeFromPlaylist(String playlistName, String videoId) {
     String lowerCaseName = playlistName.toLowerCase();
-    PlayList playList = playListMap.get(lowerCaseName);
+    VideoPlaylist playList = playListMap.get(lowerCaseName);
     if (playList != null) {
       Video video = videoLibrary.getVideo(videoId);
       if (video != null) {
@@ -227,7 +200,7 @@ public class VideoPlayer {
 
   public void clearPlaylist(String playlistName) {
     String lowerCaseName = playlistName.toLowerCase();
-    PlayList playList = playListMap.get(lowerCaseName);
+    VideoPlaylist playList = playListMap.get(lowerCaseName);
     if (playList != null) {
       playList.videos = new ArrayList<>();
       System.out.println("Successfully removed all videos from " + playlistName);
