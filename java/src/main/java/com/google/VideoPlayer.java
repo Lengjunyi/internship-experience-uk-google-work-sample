@@ -2,7 +2,6 @@ package com.google;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -27,8 +26,8 @@ public class VideoPlayer {
             video.getTags().stream().reduce(
                     (t, s) -> t + " " + s
             ).orElse(""))
-            + (flags.containsKey(video.getVideoId()) ?
-            (" - FLAGGED (reason: " + flags.get(video.getVideoId()) + ")"): "");
+            + (flags.containsKey(video.getVideoId())
+            ? (" - FLAGGED (reason: " + flags.get(video.getVideoId()) + ")") : "");
   }
 
   public void showAllVideos() {
@@ -51,7 +50,8 @@ public class VideoPlayer {
     assert video != null;
     String videoId = video.getVideoId();
     if (flags.containsKey(videoId)) {
-      System.out.printf("Cannot play video: Video is currently flagged (reason: %s)%n", flags.get(videoId));
+      System.out.printf("Cannot play video: Video is currently flagged (reason: %s)%n",
+              flags.get(videoId));
       return;
     }
     System.out.printf("Playing video: %s%n", video.getTitle());
@@ -124,9 +124,9 @@ public class VideoPlayer {
     if (playingVideo == null) {
       System.out.println("No video is currently playing");
     } else {
-      System.out.println("Currently playing: " +
-              videoDetail(playingVideo) +
-              (paused ? " - PAUSED" : ""));
+      System.out.println("Currently playing: "
+              + videoDetail(playingVideo)
+              + (paused ? " - PAUSED" : ""));
     }
   }
 
@@ -150,8 +150,8 @@ public class VideoPlayer {
       VideoPlaylist playList = playListMap.get(lowerCaseName);
       if (video != null) {
         if (flags.containsKey(videoId)) {
-          System.out.printf("Cannot add video to %s: " +
-                  "Video is currently flagged (reason: %s)%n", playlistName, flags.get(videoId));
+          System.out.printf("Cannot add video to %s: "
+                  + "Video is currently flagged (reason: %s)%n", playlistName, flags.get(videoId));
           return;
         }
         if (playList.addVideo(video)) {
@@ -205,7 +205,8 @@ public class VideoPlayer {
         if (playList.removeVideo(video)) {
           System.out.printf("Removed video from %s: %s%n", playlistName, video.getTitle());
         } else {
-          System.out.printf("Cannot remove video from %s: Video is not in playlist%n", playlistName);
+          System.out.printf("Cannot remove video from %s: Video is not in playlist%n",
+                  playlistName);
         }
       } else {
         System.out.printf("Cannot remove video from %s: Video does not exist%n", playlistName);
@@ -251,14 +252,17 @@ public class VideoPlayer {
         number.getAndIncrement();
         System.out.println(number + ") " + videoDetail(x));
       });
-      System.out.println("Would you like to play any of the above? If yes, specify the number of the video.\n" +
-              "If your answer is not a valid number, we will assume it's a no.");
+      System.out.println("Would you like to play any of the above? "
+              + "If yes, specify the number of the video.\n"
+              + "If your answer is not a valid number, we will assume it's a no.");
+      int answer;
       try {
-        int answer = new Scanner(System.in).nextInt() - 1;
-        if (answer >= 0 && answer < videos.size()) {
-          playVideo(videos.get(answer).getVideoId());
-        }
+        answer = new Scanner(System.in).nextInt() - 1;
       } catch (InputMismatchException ignored) {
+        answer = -1;
+      }
+      if (answer >= 0 && answer < videos.size()) {
+        playVideo(videos.get(answer).getVideoId());
       }
     }
   }
@@ -269,8 +273,7 @@ public class VideoPlayer {
 
   public void searchVideosWithTag(String videoTag) {
     searchVideosBy(x -> x.getTags().stream()
-                    .anyMatch(t -> t.toLowerCase().contains(videoTag.toLowerCase()))
-    , videoTag);
+                    .anyMatch(t -> t.toLowerCase().contains(videoTag.toLowerCase())), videoTag);
   }
 
   Map<String, String> flags = new HashMap<>();
@@ -289,7 +292,8 @@ public class VideoPlayer {
         System.out.println("Cannot flag video: Video is already flagged");
       } else {
         flags.put(videoId, reason);
-        System.out.printf("Successfully flagged video: %s (reason: %s)%n", video.getTitle(), reason);
+        System.out.printf("Successfully flagged video: %s (reason: %s)%n",
+                video.getTitle(), reason);
       }
     } else {
       System.out.println("Cannot flag video: Video does not exist");
