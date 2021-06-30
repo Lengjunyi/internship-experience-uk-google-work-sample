@@ -26,7 +26,9 @@ public class VideoPlayer {
             video.getVideoId(),
             video.getTags().stream().reduce(
                     (t, s) -> t + " " + s
-            ).orElse(""));
+            ).orElse(""))
+            + (flags.containsKey(video.getVideoId()) ?
+            (" - FLAGGED (reason: " + flags.get(video.getVideoId()) + ")"): "");
   }
 
   public void showAllVideos() {
@@ -47,6 +49,11 @@ public class VideoPlayer {
 
   private void playNewVideo(Video video) {
     assert video != null;
+    String videoId = video.getVideoId();
+    if (flags.containsKey(videoId)) {
+      System.out.printf("Cannot play video: Video is currently flagged (reason: %s)%n", flags.get(videoId));
+      return;
+    }
     System.out.printf("Playing video: %s%n", video.getTitle());
     playingVideo = video;
     paused = false;
@@ -75,7 +82,12 @@ public class VideoPlayer {
 
   public void playRandomVideo() {
     stopVideoIfPlaying();
-    List<Video> videos = videoLibrary.getVideos();
+    List<Video> videos = videoLibrary.getVideos().stream()
+            .filter(x -> !flags.containsKey(x.getVideoId())).collect(Collectors.toList());
+    if (videos.isEmpty()) {
+      System.out.println("No videos available");
+      return;
+    }
     int index = generator.nextInt(videos.size());
     playNewVideo(videos.get(index));
   }
@@ -137,6 +149,11 @@ public class VideoPlayer {
       Video video = videoLibrary.getVideo(videoId);
       VideoPlaylist playList = playListMap.get(lowerCaseName);
       if (video != null) {
+        if (flags.containsKey(videoId)) {
+          System.out.printf("Cannot add video to %s: " +
+                  "Video is currently flagged (reason: %s)%n", playlistName, flags.get(videoId));
+          return;
+        }
         if (playList.addVideo(video)) {
           System.out.printf("Added video to %s: %s%n", playlistName, video.getTitle());
         } else {
@@ -222,6 +239,7 @@ public class VideoPlayer {
   private void searchVideosBy(Predicate<Video> function, String searchString) {
     List<Video> videos = videoLibrary.getVideos().stream()
             .filter(function)
+            .filter(x -> !flags.containsKey(x.getVideoId()))
             .sorted(Comparator.comparing(Video::getTitle))
             .collect(Collectors.toList());
     if (videos.isEmpty()) {
@@ -255,15 +273,40 @@ public class VideoPlayer {
     , videoTag);
   }
 
+  Map<String, String> flags = new HashMap<>();
+
   public void flagVideo(String videoId) {
-    System.out.println("flagVideo needs implementation");
+    flagVideo(videoId, "Not supplied");
   }
 
   public void flagVideo(String videoId, String reason) {
-    System.out.println("flagVideo needs implementation");
+    Video video = videoLibrary.getVideo(videoId);
+    if (video != null) {
+      if (playingVideo != null && playingVideo.getVideoId().equals(videoId)) {
+        stopVideoIfPlaying();
+      }
+      if (flags.containsKey(videoId)) {
+        System.out.println("Cannot flag video: Video is already flagged");
+      } else {
+        flags.put(videoId, reason);
+        System.out.printf("Successfully flagged video: %s (reason: %s)%n", video.getTitle(), reason);
+      }
+    } else {
+      System.out.println("Cannot flag video: Video does not exist");
+    }
   }
 
   public void allowVideo(String videoId) {
-    System.out.println("allowVideo needs implementation");
+    Video video = videoLibrary.getVideo(videoId);
+    if (video != null) {
+      if (!flags.containsKey(videoId)) {
+        System.out.println("Cannot remove flag from video: Video is not flagged");
+      } else {
+        flags.remove(videoId);
+        System.out.printf("Successfully removed flag from video: %s%n", video.getTitle());
+      }
+    } else {
+      System.out.println("Cannot remove flag from video: Video does not exist");
+    }
   }
 }
